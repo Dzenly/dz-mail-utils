@@ -1,0 +1,5 @@
+{
+  "preset": "loris",
+  "fileExtensions": [".js"],
+  "excludeFiles": ["node_modules/**"]
+}
