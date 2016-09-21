@@ -33,8 +33,21 @@ function getImapObj(imap) {
      * @return {Promise} (resolved to true, if ok)
      */
     addFlags: function (flags) {
+      var self = this;
       return new Bluebird(function (resolve, reject) {
-        imap.addFlags(this.fetchecUids, flags, function (err) {
+        self.imap.addFlags(self.fetchedUids, flags, function (err) {
+          if (err) {
+            reject(err);
+          }
+          resolve(true);
+        });
+      })
+    },
+
+    delFlags: function (flags) {
+      var self = this;
+      return new Bluebird(function (resolve, reject) {
+        self.imap.delFlags(self.fetchedUids, flags, function (err) {
           if (err) {
             reject(err);
           }
@@ -49,8 +62,9 @@ function getImapObj(imap) {
      * @return {Promise} (resolved to true, if ok)
      */
     expunge: function () {
+      var self = this;
       return new Bluebird(function (resolve, reject) {
-        imap.expunge(function (err) {
+        self.imap.expunge(function (err) {
           if (err) {
             reject(err);
           }
@@ -60,11 +74,11 @@ function getImapObj(imap) {
     },
 
     end: function () {
-      imap.end();
+      this.imap.end();
     },
 
     destroy: function () {
-      imap.destroy();
+      this.imap.destroy();
     }
   }
 }

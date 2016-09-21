@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/Dzenly/dz-mail-utils#readme",
   "dependencies": {
+    "blipp": "^2.3.0",
     "bluebird": "^3.4.6",
+    "boom": "^4.0.0",
     "co": "^4.6.0",
     "hapi": "^15.0.3",
     "imap": "^0.8.18",
