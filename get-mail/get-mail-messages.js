@@ -73,10 +73,10 @@ function getImapObj(imap) {
     expunge: function () {
       var self = this;
       return new Bluebird(function (resolve, reject) {
-        if (self.fetchedUids.length === 0) {
-          resolve(true);
-          return;
-        }
+        // if (self.fetchedUids.length === 0) {
+        //   resolve(true);
+        //   return;
+        // }
         self.imap.expunge(function (err) {
           if (err) {
             reject(err);
@@ -254,6 +254,7 @@ exports.getMessages = function (mailConfig, filters, options) {
     var imap;
 
     try {
+      // imapConfig.debug = console.log;
       imap = new Imap(imapConfig);
     } catch (e) {
       logger.error('Imap creation error: ' + err);
@@ -296,7 +297,6 @@ exports.getMessages = function (mailConfig, filters, options) {
 
           if (!uids.length) {
             logger.debug('No results for filter: ' + filters);
-            imap.end();
             resolve(getImapObj(imap)); // Empty.
             return;
           }

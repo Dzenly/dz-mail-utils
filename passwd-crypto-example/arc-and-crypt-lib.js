@@ -1,11 +1,21 @@
 'use strict';
 
+var crypto = require('crypto');
+var zlib = require('zlib');
+var fork = require('child_process').fork;
+var Bluebird = require('bluebird');
+
+// Фикс для 2х-процессной отладки в WebStorm.
+// http://stackoverflow.com/questions/16840623/how-to-debug-node-js-child-forked-process
+var isDebug = typeof v8debug === 'object';
+if (isDebug) {
+  //Set an unused port number.
+  process.execArgv.push('--debug=' + (40897));
+}
+
 // 0.12.x поддерживает это API.
 
 // TODO: Асинхронные ф-и.
-
-var crypto = require('crypto');
-var zlib = require('zlib');
 
 // 'aes-256-cbc'
 var alg = 'aes256';
@@ -27,7 +37,7 @@ var encoding = 'utf8';
  * Returns a buffer.
  * @param utf8StrOrBuf
  */
-exports.compress = function(utf8StrOrBuf) {
+exports.compress = function (utf8StrOrBuf) {
   // data_type is nut supported in Node 6.5.
   return zlib.gzipSync(utf8StrOrBuf, {level: zlib.Z_BEST_COMPRESSION});
 };
@@ -96,4 +106,44 @@ exports.compressAndEncrypt = function (utf8StrOrBuf, password) {
 exports.decryptAndDecompress = function (buf, password) {
   var decrypted = exports.decryptToBuf(buf, password);
   return exports.decompress(decrypted).toString();
+};
+
+
+/**
+ *
+ * @param {String} cn
+ * @returns {Promise} Promise which is resolved to object {cert (String), pfx (String in base64)}.
+ */
+exports.compressAndEncryptAsync = function (utf8StrOrBuf, password) {
+  return new Bluebird(function (resolve, reject) {
+    var child = fork(__filename);
+    child.on('message', function (msg) {
+    //  console.dir(msg);
+      resolve(new Buffer(msg.data));
+    });
+    child.on('error', function (err) {
+      reject(err);
+    });
+    child.send({fName: 'compressAndEncrypt', data: utf8StrOrBuf, pass: password});
+  });
+};
+
+if (process.send) { // Модуль вызван через fork.
+  process.on('message', function (msg) {
+    console.dir(msg);
+    if (msg.pass) {
+      var res = exports[msg.fName](msg.data, msg.pass)
+    }
+    process.send(res, function () {
+      // https://github.com/nodejs/node-v0.x-archive/issues/2605
+      process.exit();
+    });
+  });
+
+  // var res = exports.compressAndEncrypt(data, pass);
+  // res.pfx = res.pfx.toString('base64');
+  // At which moment child process will exit?
+  // Why Webstorm shows that process is hanging.
+  // Try to use exit.
+  // https://github.com/nodejs/node-v0.x-archive/issues/2605
 };
