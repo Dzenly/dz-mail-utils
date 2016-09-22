@@ -130,20 +130,20 @@ exports.compressAndEncryptAsync = function (utf8StrOrBuf, password) {
 
 if (process.send) { // Модуль вызван через fork.
   process.on('message', function (msg) {
-    console.dir(msg);
+    // console.dir(msg);
+    // console.dir(msg.data);
+    var data;
+    if (msg.data.data) {
+      data = new Buffer(msg.data.data);
+    } else {
+      data = msg.data;
+    }
     if (msg.pass) {
-      var res = exports[msg.fName](msg.data, msg.pass)
+      var res = exports[msg.fName](data, msg.pass)
     }
     process.send(res, function () {
       // https://github.com/nodejs/node-v0.x-archive/issues/2605
       process.exit();
     });
   });
-
-  // var res = exports.compressAndEncrypt(data, pass);
-  // res.pfx = res.pfx.toString('base64');
-  // At which moment child process will exit?
-  // Why Webstorm shows that process is hanging.
-  // Try to use exit.
-  // https://github.com/nodejs/node-v0.x-archive/issues/2605
-};
+}

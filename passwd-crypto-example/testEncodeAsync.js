@@ -6,6 +6,8 @@ var password1 = 'password1';
 
 var msg = fs.readFileSync('inputData', {encoding: 'utf8'});
 
+// var msg = fs.readFileSync('inputData');
+
 // TODO: check also for buffer.
 
 // Check that parent process does not wait for child process.
@@ -15,7 +17,7 @@ var msg = fs.readFileSync('inputData', {encoding: 'utf8'});
 
 myLib.compressAndEncryptAsync(msg, password)
   .then(function (encryptedMsg) {
-    console.log(typeof encryptedMsg);
+    // console.log(typeof encryptedMsg);
     // console.log('encrypted :', encryptedMsg);
     // console.log('encrypted length:', encryptedMsg.length);
     fs.writeFileSync('outputData1', encryptedMsg);
