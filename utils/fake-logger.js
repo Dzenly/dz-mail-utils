@@ -3,8 +3,6 @@
 module.exports = {
   error: function (msg) {
   },
-  log: function (msg) {
-  },
-  verbose: function (msg) {
+  debug: function (msg) {
   }
 };

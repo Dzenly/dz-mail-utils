@@ -35,6 +35,10 @@ function getImapObj(imap) {
     addFlags: function (flags) {
       var self = this;
       return new Bluebird(function (resolve, reject) {
+        if (self.fetchedUids.length === 0) {
+          resolve(true);
+          return;
+        }
         self.imap.addFlags(self.fetchedUids, flags, function (err) {
           if (err) {
             reject(err);
@@ -47,6 +51,10 @@ function getImapObj(imap) {
     delFlags: function (flags) {
       var self = this;
       return new Bluebird(function (resolve, reject) {
+        if (self.fetchedUids.length === 0) {
+          resolve(true);
+          return;
+        }
         self.imap.delFlags(self.fetchedUids, flags, function (err) {
           if (err) {
             reject(err);
@@ -57,13 +65,18 @@ function getImapObj(imap) {
     },
 
     /**
-     * Expunges fetchecUids. Mark messages with 'Deleted' flag before this call.
+     * Expunges box. Mark messages with 'Deleted' flag before this call.
+     * Does nothing if there is no
      *
      * @return {Promise} (resolved to true, if ok)
      */
     expunge: function () {
       var self = this;
       return new Bluebird(function (resolve, reject) {
+        if (self.fetchedUids.length === 0) {
+          resolve(true);
+          return;
+        }
         self.imap.expunge(function (err) {
           if (err) {
             reject(err);
@@ -116,12 +129,12 @@ function fetchMsg(imap, uid, logger) {
 
     fetchResult.on('message', function (msg, seqno) {
 
-      logger.verbose('Msg #' + seqno);
+      logger.debug('Msg #' + seqno);
 
       var mailParser = new MailParser();
 
       msg.on('body', function (stream, info) {
-        logger.verbose('Body info: ' + info);
+        logger.debug('Body info: ' + info);
         stream.on('data', function (chunk) {
           try {
             mailParser.write(chunk);
@@ -149,7 +162,7 @@ function fetchMsg(imap, uid, logger) {
       });
 
       // mailParser.on('headers', function(headers){
-      //   logger.verbose('Headers: ' + headers.received);
+      //   logger.debug('Headers: ' + headers.received);
       // });
 
     });
@@ -162,7 +175,7 @@ function *fetchMsgs(imap, uids, logger) {
 
   for (var i = 0, len = uids.length; i < len; i++) {
     var uid = uids[i];
-    logger.verbose('Fetching msg with uid: ' + uid);
+    logger.debug('Fetching msg with uid: ' + uid);
 
     yield fetchMsg(imap, uid, logger)
       .then(function (msg) {
@@ -201,7 +214,7 @@ function *fetchMsgs(imap, uids, logger) {
  * https://www.npmjs.com/package/imap for more details.
  *
  * @param {object} [options]
- * @param {object|string} [options.logger] - the object exposing methods: error(msg), log(msg), verbose(msg)
+ * @param {object|string} [options.logger] - the object exposing methods: error(msg), debug(msg)
  * Use 'console' string to use built in console logger. If undefined - there will be no logs.
  * @param {string} [options.boxName='INBOX']
  *
@@ -216,9 +229,9 @@ exports.getMessages = function (mailConfig, filters, options) {
 
   var logger = options.logger;
   if (logger === 'console') {
-    logger = require('../console-logger.js');
+    logger = require('../utils/console-logger.js');
   } else if (!logger) {
-    logger = require('../fake-logger.js');
+    logger = require('../utils/fake-logger.js');
   }
 
   var boxName = options.boxName || 'INBOX';
@@ -282,9 +295,9 @@ exports.getMessages = function (mailConfig, filters, options) {
           }
 
           if (!uids.length) {
-            logger.verbose('No results for filter: ' + filters);
+            logger.debug('No results for filter: ' + filters);
             imap.end();
-            resolve(null);
+            resolve(getImapObj(imap)); // Empty.
             return;
           }
 

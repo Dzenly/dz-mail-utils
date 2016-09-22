@@ -1,37 +1,89 @@
 'use strict';
 
-const Hapi = require('hapi');
+var Hapi = require('hapi');
+var Boom = require('boom');
+var Blipp = require('blipp');
+var Joi = require('joi');
+var logger = require('../utils/logger');
 
-// Create a server with a host and port
-const server = new Hapi.Server();
+var getMessages = require('./get-mail-messages.js').getMessages;
+
+// TODO: pass filters in request?
+// var filters = ['UNSEEN'];
+var filters = [['SINCE', 'September 19, 2016']];
+
+// TODO: pass boxName in request (for now INBOX is used) ?
+
+var fetchValidationSchema = Joi.object().keys({
+  address: Joi.string().email().required(),
+  password: Joi.string().required(),
+  host: Joi.string().hostname().required(), // string.uri ?
+  tls: Joi.boolean(),
+  port: Joi.number().integer(),
+  remove: Joi.boolean()
+});
+
+var server = new Hapi.Server();
 server.connection({
   host: 'localhost',
   port: 8000
 });
 
-// Add the route
 server.route({
   method: 'GET',
-  path:'/fetch',
+  path: '/fetch',
   handler: function (req, rep) {
 
-    // TODO: Hapi query validators ??
+    var msgsPromise = getMessages(req.query, filters, {logger: logger});
 
-    var msgsPromise = getMessages(cfg, [['SINCE', 'September 19, 2016']], {logger: 'console'});
+    msgsPromise.then(
+      function (imapObj) {
 
+        rep(imapObj.parsedMsgs); // TODO: how to make sure that rep is successful?
 
+        var operationResultPromise;
 
-    console.dir(req.query);
+        if (req.query.remove) {
+          operationResultPromise = imapObj.addFlags('Deleted')
+            .then(function () {
+              logger.debug('"Deleted" flags are set successfully');
+              return imapObj.expunge()
+                .then(function () {
+                  logger.debug('Expunge is successfully');
+                });
+            })
+        } else {
+          operationResultPromise = imapObj.addFlags('Seen')
+            .then(function () {
+              logger.debug('"Seen" flags are set successfully');
+            });
+        }
 
-    return rep('hello world');
+        operationResultPromise
+          .catch(function (err) {
+            logger.error(err);
+          })
+          .finally(function () {
+            imapObj.end();
+          });
+
+      }, function (err) {
+        rep(Boom.badRequest(err));
+      });
+  },
+  config: {
+    validate: {
+      query: fetchValidationSchema
+    }
   }
 });
 
-// Start the server
-server.start((err) => {
+server.register({register: Blipp, options: {}}, function (err) {
+  server.start((err) => {
 
-  if (err) {
-    throw err;
-  }
-  console.log('Server running at:', server.info.uri);
+    if (err) {
+      throw err;
+    }
+    console.log('Server running at:', server.info.uri);
+  });
 });
