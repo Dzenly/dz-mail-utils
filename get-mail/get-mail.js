@@ -41,6 +41,10 @@ server.route({
 
         rep(imapObj.parsedMsgs); // TODO: how to make sure that rep is successful?
 
+        // Actually reply will be performed at next tick.
+
+        // TODO: is there some post reply action.
+
         var operationResultPromise;
 
         if (req.query.remove) {
