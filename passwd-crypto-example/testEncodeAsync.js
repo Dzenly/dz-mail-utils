@@ -20,7 +20,7 @@ myLib.compressAndEncryptAsync(msg, password)
     // console.log(typeof encryptedMsg);
     // console.log('encrypted :', encryptedMsg);
     // console.log('encrypted length:', encryptedMsg.length);
-    fs.writeFileSync('outputData1', encryptedMsg);
+    fs.writeFileSync('encryptedAsync', encryptedMsg);
   })
   .catch(function (err) {
     console.error(err);

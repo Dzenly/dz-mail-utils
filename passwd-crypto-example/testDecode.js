@@ -11,22 +11,6 @@ console.log('encoded  length :', inpBuf.length);
 
 var decryptedMsg = myLib.decryptAndDecompress(inpBuf, password);
 
-console.log('decrypted :', decryptedMsg);
+console.log('decrypted :', decryptedMsg.toString());
 console.log('decrypted length:', decryptedMsg.length);
 
-// fs.writeFileSync('outputData', decryptedMsg);
-
-// var decryptedMsg = decrypt(encryptedMsg, password);
-//
-// console.log('decrypted :', decryptedMsg);
-//
-// var compressed1 = compress(msg);
-//
-// var decomp1 = decompress(compressed1);
-//
-// // console.log(compressed1, compressed1.length);
-//
-// console.log('original length: ', msg.length);
-// console.log('compressed length: ', compressed1.length);
-//
-// console.log(decomp1.toString());

@@ -99,27 +99,15 @@ exports.compressAndEncrypt = function (utf8StrOrBuf, password) {
 };
 
 /**
- * Returns a buffer.
+ * Returns an utf8 string.
  * @param buf
  * @param password
  */
 exports.decryptAndDecompress = function (buf, password) {
   var decrypted = exports.decryptToBuf(buf, password);
-  return exports.decompress(decrypted);
+  return exports.decompress(decrypted).toString();
 };
 
-function forkHelper(fName, data, password, key) {
-  return new Bluebird(function (resolve, reject) {
-    var child = fork(__filename);
-    child.on('message', function (msg) {
-      resolve(new Buffer(msg.data));
-    });
-    child.on('error', function (err) {
-      reject(err);
-    });
-    child.send({fName: fName, data: data, pass: password, key: key});
-  });
-}
 
 /**
  *
@@ -127,16 +115,17 @@ function forkHelper(fName, data, password, key) {
  * @returns {Promise} Promise which is resolved to object {cert (String), pfx (String in base64)}.
  */
 exports.compressAndEncryptAsync = function (utf8StrOrBuf, password) {
-  return forkHelper('compressAndEncrypt', utf8StrOrBuf, password);
-};
-
-/**
- * Returns an utf8 string.
- * @param buf
- * @param password
- */
-exports.decryptAndDecompressAsync = function (buf, password) {
-  return forkHelper('decryptAndDecompress', buf, password);
+  return new Bluebird(function (resolve, reject) {
+    var child = fork(__filename);
+    child.on('message', function (msg) {
+    //  console.dir(msg);
+      resolve(new Buffer(msg.data));
+    });
+    child.on('error', function (err) {
+      reject(err);
+    });
+    child.send({fName: 'compressAndEncrypt', data: utf8StrOrBuf, pass: password});
+  });
 };
 
 if (process.send) { // Модуль вызван через fork.
@@ -149,8 +138,15 @@ if (process.send) { // Модуль вызван через fork.
     } else {
       data = msg.data;
     }
-    if (msg.pass) {
-      var res = exports[msg.fName](data, msg.pass)
+    var res = {};
+    try {
+      res.err = null;
+      res.data = null;
+      if (msg.pass) {
+        res.data = exports[msg.fName](data, msg.pass)
+      }
+    } catch(err) {
+      res.err = err.toString();
     }
     process.send(res, function () {
       // https://github.com/nodejs/node-v0.x-archive/issues/2605
