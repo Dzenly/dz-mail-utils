@@ -6,7 +6,7 @@ var Blipp = require('blipp');
 var Joi = require('joi');
 var logger = require('../utils/logger');
 
-var getMessages = require('./get-mail-messages.js').getMessages;
+var getMessages = require('./get-mail-utility.js').getMessages;
 
 // TODO: pass filters in request?
 // var filters = ['UNSEEN'];
