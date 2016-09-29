@@ -1,0 +1,28 @@
+=================
+Title: Gzip and encrypt the data
+initial data type: object
+initial data length: 1249
+encrypted length: 608
+decrypted length as buffer: 1249
+decrypted length as string: 989
+OK: Input data is equal to decrypted one
+initial data type: string
+initial data length: 989
+encrypted length: 608
+decrypted length as buffer: 1249
+decrypted length as string: 989
+OK: Input data is equal to decrypted one
+initial data type: object
+initial data length: 1249
+encrypted length: 608
+OK: Expected exception: 'Error: error:06065064:digital envelope routines:EVP_DecryptFinal_ex:bad decrypt'
+initial data type: object
+initial data length: 1249
+encrypted length: 608
+OK: Expected exception: 'TypeError: Key must be a buffer'
+initial data type: object
+initial data length: 1249
+encrypted length: 608
+OK: Expected exception: 'TypeError: Key must be a buffer'
+=================
+Pass: 5, Fail: 0
