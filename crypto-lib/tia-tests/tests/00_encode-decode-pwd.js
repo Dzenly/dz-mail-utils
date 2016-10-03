@@ -1,6 +1,6 @@
 'use strict';
 
-t.setTitle('Gzip and encrypt the data');
+t.setTitle('Gzip encrypt / decrypt unzip with password');
 
 var fs = require('fs');
 var myLib = require('../../arc-and-crypt-lib.js');
@@ -11,10 +11,10 @@ var password2 = 'password1';
 function test(inputData, encryptPassword, decryptPassword) {
   l.println('initial data type: ' + typeof inputData);
   l.println('initial data length: ' + inputData.length);
-  var encryptedData = myLib.compressAndEncrypt(inputData, encryptPassword);
+  var encryptedData = myLib.compressAndEncryptWithPassword(inputData, encryptPassword);
   l.println('encrypted length: ' + encryptedData.length);
   gIn.tracer.resourcesUsage();
-  var decryptedData = myLib.decryptAndDecompress(encryptedData, decryptPassword);
+  var decryptedData = myLib.decryptAndDecompressWithPassword(encryptedData, decryptPassword);
   l.println('decrypted length as buffer: ' + decryptedData.length);
   l.println('decrypted length as string: ' + decryptedData.toString().length);
   gIn.tracer.resourcesUsage();
@@ -28,8 +28,8 @@ function test(inputData, encryptPassword, decryptPassword) {
   gIn.tracer.resourcesUsage();
 }
 
-// var inputFile = 'data/1.2K';
-var inputFile = 'data/27M';
+var inputFile = 'data/1.2K';
+// var inputFile = 'data/27M';
 
 var inputDataBuf = fs.readFileSync(inputFile);
 test(inputDataBuf, password1, password1);

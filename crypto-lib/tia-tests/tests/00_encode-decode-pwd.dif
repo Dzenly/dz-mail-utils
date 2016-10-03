@@ -1,0 +1,38 @@
+4,7c4,7
+< initial data length: 1249
+< encrypted length: 608
+< decrypted length as buffer: 1249
+< decrypted length as string: 989
+---
+> initial data length: 27947458
+> encrypted length: 27506736
+> decrypted length as buffer: 27947458
+> decrypted length as string: 26894273
+10,13c10,13
+< initial data length: 989
+< encrypted length: 608
+< decrypted length as buffer: 1249
+< decrypted length as string: 989
+---
+> initial data length: 26894273
+> encrypted length: 22166464
+> decrypted length as buffer: 51411176
+> decrypted length as string: 26894273
+16,17c16,17
+< initial data length: 1249
+< encrypted length: 608
+---
+> initial data length: 27947458
+> encrypted length: 27506736
+20,21c20,21
+< initial data length: 1249
+< encrypted length: 608
+---
+> initial data length: 27947458
+> encrypted length: 27506736
+24,25c24,25
+< initial data length: 1249
+< encrypted length: 608
+---
+> initial data length: 27947458
+> encrypted length: 27506736
