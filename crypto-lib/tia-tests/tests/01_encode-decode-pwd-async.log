@@ -1,33 +1,33 @@
 =================
 Title: Gzip and encrypt the data
 initial data type: object
-initial data length: 1249
+initial data length: 27947458
 Encrypt password: password, decryptPassword: password
-encrypted length: 608
-decrypted length as buffer: 1249
-decrypted length as string: 989
+encrypted length: 27506736
+decrypted length as buffer: 27947458
+decrypted length as string: 26894273
 OK: Input data is equal to decrypted one
 initial data type: string
-initial data length: 989
+initial data length: 26894273
 Encrypt password: password, decryptPassword: password
-encrypted length: 608
-decrypted length as buffer: 1249
-decrypted length as string: 989
+encrypted length: 22166464
+decrypted length as buffer: 51411176
+decrypted length as string: 26894273
 OK: Input data is equal to decrypted one
 initial data type: object
-initial data length: 1249
+initial data length: 27947458
 Encrypt password: password, decryptPassword: password1
-encrypted length: 608
+encrypted length: 27506736
 OK: Expected exception: 'Error: error:06065064:digital envelope routines:EVP_DecryptFinal_ex:bad decrypt'
 initial data type: object
-initial data length: 1249
+initial data length: 27947458
 Encrypt password: password, decryptPassword: undefined
-encrypted length: 608
+encrypted length: 27506736
 OK: Expected exception: 'Error: No Password or RSA Key'
 initial data type: object
-initial data length: 1249
+initial data length: 27947458
 Encrypt password: password, decryptPassword: null
-encrypted length: 608
+encrypted length: 27506736
 OK: Expected exception: 'Error: No Password or RSA Key'
 =================
 Pass: 5, Fail: 0

@@ -1,9 +1,15 @@
 'use strict';
 
+// TODO: To make ICP faster.
+// https://github.com/nodejs/node/issues/3145
+
 var crypto = require('crypto');
 var zlib = require('zlib');
 var fork = require('child_process').fork;
 var Bluebird = require('bluebird');
+var getTmpFilePath = require('./utils/get-tmp-file-path.js');
+var path = require('path');
+var fs = require('fs');
 
 // Fix for debugging child processes in WebStorm, but seems like does not work sometimes.
 // http://stackoverflow.com/questions/16840623/how-to-debug-node-js-child-forked-process
@@ -122,9 +128,16 @@ exports.decryptAndDecompressWithPrivKey = function (buf, key) {
   throw new Error('Not yet implemented');
 };
 
+function getRandomFileName() {
+  return crypto.getRandomBytes.toString('base64');
+}
+
+var ipcByFiles = true;
+var tmpDirName = 'tmp';
+
 /********** Async part *************/
 
-function forkHelper(fName, data, password, key) {
+function forkHelper(funcName, data, password, key) {
   return new Bluebird(function (resolve, reject) {
     var child = fork(__filename);
     child.on('message', function (msg) {
@@ -139,7 +152,21 @@ function forkHelper(fName, data, password, key) {
     child.on('error', function (err) {
       reject(err);
     });
-    child.send({fName: fName, data: data, pass: password, key: key},
+
+    var msgToChild = {
+      funcName: funcName,
+      pass: password,
+      key: key
+    };
+    if (ipcByFiles) {
+      var filePath = getTmpFilePath(tmpDirName);
+      fs.writeFileSync(filePath, data);
+      msgToChild.filePath = filePath;
+    } else {
+      msgToChild.data = data;
+    }
+
+    child.send(msgToChild,
       function () {
       });
   });
@@ -174,30 +201,36 @@ exports.decryptAndDecompressWithPrivKeyAsync = function (buf, key) {
 if (process.send) { // This is child process.
   process.on('message', function (msg) {
     var data;
-    if (msg.data.data) { // Buffer was sent to us.
-      data = new Buffer(msg.data.data);
-    } else {
-      data = msg.data; // String was sent to us.
-    }
     var res = null;
     try {
+      if (msg.data) {
+        if (msg.data.data) { // Buffer was sent to us.
+          data = new Buffer(msg.data.data);
+        } else {
+          data = msg.data; // String was sent to us.
+        }
+      } else if (msg.filePath) {
+        data = fs.readFileSync(msg.filePath);
+        fs.unlinkSync(msg.filePath);
+      } else {
+        throw (new Error('No data or filePath sent to child process'));
+      }
       if (msg.pass) {
-        res = exports[msg.fName](data, msg.pass);
+        res = exports[msg.funcName](data, msg.pass);
       } else if (msg.key) {
-        res = exports[msg.fName](data, msg.key);
+        res = exports[msg.funcName](data, msg.key);
       } else {
         throw (new Error('No Password or RSA Key'));
       }
+      process.send(res, function () {
+        // https://github.com/nodejs/node-v0.x-archive/issues/2605
+        process.exit();
+      });
     } catch (err) {
       process.send({err: err.toString(), stack: err.stack}, function () {
         process.exit(1);
       });
     }
-    if (res) {
-      process.send(res, function () {
-        // https://github.com/nodejs/node-v0.x-archive/issues/2605
-        process.exit();
-      });
-    }
+
   });
 }

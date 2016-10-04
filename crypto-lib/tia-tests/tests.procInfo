@@ -3,10 +3,10 @@ Arch: x64
 Cwd: /home/alexey/projects/work/dz-mail-utils/crypto-lib/tia-tests
 Proc Exec: /home/alexey/.nvm/versions/node/v6.7.0/bin/node
 Proc Args: --harmony
-Proc Pid: 18030
+Proc Pid: 7267
 Proc Platform: linux
 Proc Title: /home/alexey/.nvm/versions/node/v6.7.0/bin/node
-Proc Uptime: 1.589
+Proc Uptime: 608.997
 Node release info: { name: 'node',
   sourceUrl: 'https://nodejs.org/download/release/v6.7.0/node-v6.7.0.tar.gz',
   headersUrl: 'https://nodejs.org/download/release/v6.7.0/node-v6.7.0-headers.tar.gz' }
@@ -19,5 +19,5 @@ Node version info: { http_parser: '2.7.0',
   icu: '57.1',
   modules: '48',
   openssl: '1.0.2j' }
-Memory MB: { rss: '45.148', heapTotal: '33.035', heapUsed: '17.078' }
-CPU ms: { user: '404.000', system: '48.000' }
+Memory MB: { rss: '1088.652', heapTotal: '682.703', heapUsed: '647.899' }
+CPU ms: { user: '214532.000', system: '184584.000' }
