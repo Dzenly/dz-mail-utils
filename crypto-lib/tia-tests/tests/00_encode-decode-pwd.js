@@ -28,8 +28,8 @@ function test(inputData, encryptPassword, decryptPassword) {
   gIn.tracer.resourcesUsage();
 }
 
-// var inputFile = 'data/1.2K';
-var inputFile = 'data/3M';
+var inputFile = 'data/1.2K';
+// var inputFile = 'data/3M';
 // var inputFile = 'data/27M';
 
 var inputDataBuf = fs.readFileSync(inputFile);

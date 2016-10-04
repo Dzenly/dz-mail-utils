@@ -42,9 +42,9 @@ function *main() {
   t.setTitle('Gzip and encrypt the data');
 
   // var inputFile = 'data/10B';
-  // var inputFile = 'data/1.2K';
+  var inputFile = 'data/1.2K';
   // var inputFile = 'data/3M';
-  var inputFile = 'data/27M';
+  // var inputFile = 'data/27M';
 
   var inputDataBuf = fs.readFileSync(inputFile);
   yield *test(inputDataBuf, password1, password1);

@@ -64,7 +64,8 @@ exports.encryptWithPassword = function (data, password) {
  * @returns {Buffer}
  */
 exports.encryptWithPubKey = function (data, key) {
-  throw new Error('Not yet implemented');
+  return crypto.publicEncrypt(key, data);
+  // throw new Error('Not yet implemented');
 };
 
 /**
@@ -93,12 +94,14 @@ exports.decryptWithPasswordToBuf = function (buf, password) {
   return Buffer.concat([tmpBuf1, tmpBuf2]);
 };
 
-exports.decryptWithPrivKeyToStr = function (buf, password) {
-  throw new Error('Not yet implemented');
+exports.decryptWithPrivKeyToStr = function (buf, key) {
+  return crypto.privateDecrypt(key, buf).toString();
+  // throw new Error('Not yet implemented');
 };
 
-exports.decryptWithPrivKeyToBuf = function (buf, password) {
-  throw new Error('Not yet implemented');
+exports.decryptWithPrivKeyToBuf = function (buf, key) {
+  return crypto.privateDecrypt(key, buf)
+  // throw new Error('Not yet implemented');
 };
 
 /**
@@ -121,16 +124,14 @@ exports.decryptAndDecompressWithPassword = function (buf, password) {
 };
 
 exports.compressAndEncryptWithPubKey = function (utf8StrOrBuf, key) {
-  throw new Error('Not yet implemented');
+  var compressed = exports.compress(utf8StrOrBuf);
+  return exports.encryptWithPubKey(compressed, key);
 };
 
 exports.decryptAndDecompressWithPrivKey = function (buf, key) {
-  throw new Error('Not yet implemented');
+  var decrypted = exports.decryptWithPrivKeyToBuf(buf, key);
+  return exports.decompress(decrypted);
 };
-
-function getRandomFileName() {
-  return crypto.getRandomBytes.toString('base64');
-}
 
 var ipcByFiles = true;
 var tmpDirName = 'tmp';

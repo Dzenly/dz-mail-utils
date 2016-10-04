@@ -38,7 +38,6 @@ var mailOptions = {
   //  path: '', // filename derived from path.
   //  contentType: 'text/plain' // by default derive from path.
   //}]
-
 };
 
 /**
