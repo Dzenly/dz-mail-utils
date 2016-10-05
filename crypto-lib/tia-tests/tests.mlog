@@ -3,7 +3,7 @@
 ====================    Short Log END.    ====================
 
 ====================    Verbose Log BEGIN:    ====================
-"tests", dif: 0, fail: 0, edif: 0, skip: 0, Pass: 10, 1191.80 ms, ""
-| "00_encode-decode-pwd.js", OK, fail: 0, Pass: 5, 52.45 ms, "Gzip encrypt / decrypt unzip with password"
-| "01_encode-decode-pwd-async.js", OK, fail: 0, Pass: 5, 1126.87 ms, "Gzip and encrypt the data"
+"tests", dif: 0, fail: 0, edif: 0, skip: 0, Pass: 24, 2775.26 ms, ""
+| "00_encode-decode-sync.js", OK, fail: 0, Pass: 12, 86.02 ms, "Gzip encrypt / decrypt unzip with password"
+| "01_encode-decode-async.js", OK, fail: 0, Pass: 12, 2677.87 ms, "Gzip and encrypt the data"
 ====================    Verbose Log END.    ====================

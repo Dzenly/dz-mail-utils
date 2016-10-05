@@ -22,9 +22,13 @@ if (isDebug) {
 
 // ? 'aes-256-cbc'
 var alg = 'aes256';
-
 // 'utf8', 'ascii', or 'binary'
 var encoding = 'utf8';
+var constPadding = crypto.constants ? crypto.constants.RSA_PKCS1_PADDING : constants.RSA_PKCS1_PADDING;
+var chunkSize = 240;
+var keySize = 256;
+var ipcByFiles = true;
+var tmpDirName = 'tmp';
 
 /**
  * @param utf8StrOrBuf
@@ -64,8 +68,23 @@ exports.encryptWithPassword = function (data, password) {
  * @returns {Buffer}
  */
 exports.encryptWithPubKey = function (data, key) {
-  return crypto.publicEncrypt(key, data);
-  // throw new Error('Not yet implemented');
+  var len = data.length;
+  var begin = 0;
+  var end = chunkSize;
+  var chunksArray = [];
+
+  do {
+    var chunk = data.slice(begin, (end > len) ? len : end);
+    chunksArray.push(crypto.publicEncrypt(
+      {
+        key: key,
+        padding: constPadding
+      }, chunk));
+    begin += chunkSize;
+    end += chunkSize;
+  } while (begin < len);
+
+  return Buffer.concat(chunksArray, Math.ceil(len / chunkSize) * keySize);
 };
 
 /**
@@ -95,13 +114,30 @@ exports.decryptWithPasswordToBuf = function (buf, password) {
 };
 
 exports.decryptWithPrivKeyToStr = function (buf, key) {
-  return crypto.privateDecrypt(key, buf).toString();
-  // throw new Error('Not yet implemented');
+  return exports.decryptWithPrivKeyToBuf(buf, key).toString();
 };
 
 exports.decryptWithPrivKeyToBuf = function (buf, key) {
-  return crypto.privateDecrypt(key, buf)
-  // throw new Error('Not yet implemented');
+  var len = buf.length;
+  var begin = 0;
+  var end = keySize;
+  var chunksArray = [];
+  var summLen = 0;
+
+  do {
+    var chunk = buf.slice(begin, end);
+    var chunkDecoded = crypto.privateDecrypt(
+      {
+        key: key,
+        padding: constPadding
+      }, chunk);
+    summLen += chunkDecoded.length;
+    chunksArray.push(chunkDecoded);
+    begin += keySize;
+    end += keySize;
+  } while (begin < len);
+
+  return Buffer.concat(chunksArray, summLen);
 };
 
 /**
@@ -132,9 +168,6 @@ exports.decryptAndDecompressWithPrivKey = function (buf, key) {
   var decrypted = exports.decryptWithPrivKeyToBuf(buf, key);
   return exports.decompress(decrypted);
 };
-
-var ipcByFiles = true;
-var tmpDirName = 'tmp';
 
 /********** Async part *************/
 
@@ -192,16 +225,17 @@ exports.decryptAndDecompressWithPasswordAsync = function (buf, password) {
 };
 
 exports.compressAndEncryptWithPubKeyAsync = function (utf8StrOrBuf, key) {
-  return forkHelper('compressAndEncryptWithPubKey', utf8StrOrBuf, key);
+  return forkHelper('compressAndEncryptWithPubKey', utf8StrOrBuf, null, key);
 };
 
 exports.decryptAndDecompressWithPrivKeyAsync = function (buf, key) {
-  return forkHelper('decryptAndDecompressWithPrivKey', buf, key);
+  return forkHelper('decryptAndDecompressWithPrivKey', buf, null, key);
 };
 
 if (process.send) { // This is child process.
   process.on('message', function (msg) {
     var data;
+    var key;
     var res = null;
     try {
       if (msg.data) {
@@ -219,7 +253,12 @@ if (process.send) { // This is child process.
       if (msg.pass) {
         res = exports[msg.funcName](data, msg.pass);
       } else if (msg.key) {
-        res = exports[msg.funcName](data, msg.key);
+        if (msg.key.data) { // Buffer was sent to us.
+          key = new Buffer(msg.key.data);
+        } else {
+          key = msg.key;
+        }
+        res = exports[msg.funcName](data, key);
       } else {
         throw (new Error('No Password or RSA Key'));
       }
