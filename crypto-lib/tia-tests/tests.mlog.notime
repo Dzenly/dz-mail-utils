@@ -1,9 +1,0 @@
-====================    Short Log BEGIN:    ====================
-"tests", dif: 0, fail: 0
-====================    Short Log END.    ====================
-
-====================    Verbose Log BEGIN:    ====================
-"tests", dif: 0, fail: 0, edif: 0, skip: 0, Pass: 24, ""
-| "00_encode-decode-sync.js", OK, fail: 0, Pass: 12, "Gzip encrypt / decrypt unzip with password"
-| "01_encode-decode-async.js", OK, fail: 0, Pass: 12, "Gzip and encrypt the data"
-====================    Verbose Log END.    ====================
