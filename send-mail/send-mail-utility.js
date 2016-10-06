@@ -1,92 +1,56 @@
 'use strict';
 
-var nodemailer = require('nodemailer');
-var smtpTransport = require('nodemailer-smtp-transport');
+var Bluebird = require('bluebird');
+var mailer = require('nodemailer');
+var logger = require('../utils/logger');
 
-// create reusable transporter object using SMTP transport
-// Some antiviruses can block sending with self signed certificate.
-// If this is your case -
-
-function getSmtpTransporter() {
-  return nodemailer.createTransport(
-    smtpTransport({
-      host: gT.suiteConfig.mailSmtpHost,
-      secure: true,
-      //secure : false,
-      //port: 25, // 465 for tls.
-      auth: {
-        user: gT.suiteConfig.mailUser,
-        pass: gT.suiteConfig.mailPassword
-      }
-      , tls: {
-       rejectUnauthorized: false
-      }
-    })
-  );
-}
-
-// All text fields (e-mail addresses, plaintext body, html body) use UTF-8 as the encoding.
-// Attachments are streamed as binary.
-var mailOptions = {
-  from: 'AutoTest <build@rvision.pro>',
-  to: '', // list of receivers
-  subject: '',
-  text: '', // plaintext body
-  //html: '', // html body
-  //attachments: [{
-  //  // can be URL, i.e. we can save our logs history and access it by http.
-  //  path: '', // filename derived from path.
-  //  contentType: 'text/plain' // by default derive from path.
-  //}]
+var gAttachmentContentType = 'application/octet-stream';
+var gAttachmentFileName = 'attachment';
+var gTls = {
+  rejectUnauthorized: false
 };
 
-/**
- * Sends email.
- *
- * @param subj
- * @param {Array of Strings} txtAttachments
- * @param {Array of Strings} [zipAttachments]
- * @returns {Promise<T>}
- */
-exports.send = function (subj, txtAttachments, zipAttachments) {
-  if (gIn.params.disableEmail || !gT.suiteConfig.mailRecipientList) {
-    gIn.tracer.err('Mail list is empty.');
-    return;
-  }
-  mailOptions.subject = subj;
-  mailOptions.to = gT.suiteConfig.mailRecipientList;
-  mailOptions.attachments = txtAttachments.filter(val => Boolean(val)).map(val => ({path: val, contentType: 'text/plain'}));
+module.exports = function (options) {
 
-  /*{path: gT.engineConsts.gitPullLog}, */
-
-  if (zipAttachments) {
-    mailOptions.attachments = mailOptions.attachments.concat(
-      zipAttachments.filter(val => Boolean(val)).map(val => ({path: val, contentType: 'application/zip'}))
-    );
-  }
-
-  return new gT.sOrig.promise.Promise(function (resolve, reject) {
-
-    var attemptCounter = gT.engineConsts.mailAttemptsCount;
-
-    function sendMail() {
-      getSmtpTransporter().sendMail(mailOptions, function (err, info) {
-        if (err) {
-          gIn.tracer.err('sendMail ERR: ' + err);
-          if (attemptCounter) {
-            attemptCounter--;
-            gIn.tracer.msg1('sendMail: retry, attemptCounter' + attemptCounter);
-            setTimeout(sendMail, gT.engineConsts.mailWaitTimeout * 1000)
-          } else {
-            gIn.tracer.err('sendMail ERR: no more attempts');
-            reject(err);
-          }
-        } else {
-          gIn.tracer.msg3('sendMail Info: ' + info);
-          resolve(info);
-        }
-      });
+  var transporter = mailer.createTransport(
+    {
+      host: options.host,
+      // port ??
+      secure: options.secure,
+      auth: {
+        user: options.user,
+        pass: options.password
+      },
+      tls: gTls
     }
-    sendMail();
+  );
+
+  var mailOptions = {
+    from: options.from,
+    to: options.to,
+    subject: options.subject,
+    text: options.text,
+    html: options.html
+  };
+
+  if (options.attachments) {
+    mailOptions.attachments = options.attachments;
+  } else if (options.attachment) {
+    mailOptions.attachments = [{
+      filename: gAttachmentFileName,
+      contentType: gAttachmentContentType,
+      content: options.attachment
+    }];
+  }
+
+  return new Bluebird(function (resolve, reject) {
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        logger.error(error);
+        reject(error);
+      }
+      logger.info(info);
+      resolve(true);
+    })
   });
 };
