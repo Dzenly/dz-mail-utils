@@ -31,6 +31,7 @@ server.route({
   method: 'POST',
   path: '/send',
   handler: function (req, rep) {
+    req.payload.attachment = new Buffer(req.payload.attachment, 'base64');
     var sendPromise = send(req.payload);
     if (req.payload.waitResponse) {
       sendPromise.then(function (result) {

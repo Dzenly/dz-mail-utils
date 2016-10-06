@@ -10,10 +10,15 @@ mailOpts.subject = 'Test subject for incidents excange';
 mailOpts.text = 'Test text';
 mailOpts.html = '<h1>Test HTML <h1>';
 
-var str = crypto.randomBytes(3e6).toString('hex');
+var str = crypto.randomBytes(6e7); // .toString('hex');
+
+require('fs').writeFileSync('BigAttachment', str);
+
 mailOpts.attachment = str;
 
 // mailOpts.attachment = 'My Super attachment';
+
+// send(mailOpts);
 
 send(mailOpts)
   .then(function (info) {
@@ -21,4 +26,5 @@ send(mailOpts)
     console.dir(info);
   }, function (err) {
     console.error(err);
+    console.error(err.stack);
   });

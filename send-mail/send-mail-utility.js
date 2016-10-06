@@ -51,6 +51,6 @@ module.exports = function (options) {
       }
       logger.info(info);
       resolve(true);
-    })
+    });
   });
 };

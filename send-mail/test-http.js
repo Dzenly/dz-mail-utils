@@ -11,7 +11,8 @@ mailOpts.subject = 'Test subject for incidents excange';
 mailOpts.text = 'Test text';
 mailOpts.html = '<h1>Test HTML <h1>';
 
-var str = crypto.randomBytes(3e7).toString('hex');
+var str = crypto.randomBytes(3e7).toString('base64');
+// .toString('hex');
 
 mailOpts.attachment = str;
 mailOpts.waitResponse = true;
