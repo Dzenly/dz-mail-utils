@@ -8,8 +8,6 @@ var logger = require('../utils/logger');
 
 var send = require('./send-mail-utility.js');
 
-// TODO: pass boxName in request (for now INBOX is used) ?
-
 var sendValidationSchema = Joi.object().keys({
   attachment: Joi.string().required(),
   from: Joi.string(),
@@ -33,11 +31,23 @@ server.route({
   method: 'POST',
   path: '/send',
   handler: function (req, rep) {
-    rep('OK');
+    var sendPromise = send(req.payload);
+    if (req.payload.waitResponse) {
+      sendPromise.then(function (result) {
+        rep('OK');
+      }, function (err) {
+        rep(Boom.badRequest(err));
+      })
+    } else {
+      rep('OK');
+    }
   },
   config: {
     validate: {
       payload: sendValidationSchema
+    },
+    payload: {
+      maxBytes: 2e8 // TODO: put in some config.
     }
   }
 });
