@@ -6,22 +6,22 @@ var Blipp = require('blipp');
 var Joi = require('joi');
 var logger = require('../utils/logger');
 
-var getMessages = require('./get-mail-utility.js').getMessages;
-
-// TODO: pass filters in request?
-// var filters = ['UNSEEN'];
-var filters = [['SINCE', 'September 19, 2016']];
+var send = require('./send-mail-utility.js');
 
 // TODO: pass boxName in request (for now INBOX is used) ?
 
-// var sendValidationSchema = Joi.object().keys({
-//   address: Joi.string().email().required(),
-//   password: Joi.string().required(),
-//   host: Joi.string().hostname().required(), // string.uri ?
-//   tls: Joi.boolean(),
-//   port: Joi.number().integer(),
-//   remove: Joi.boolean()
-// });
+var sendValidationSchema = Joi.object().keys({
+  attachment: Joi.string().required(),
+  from: Joi.string(),
+  host: Joi.string().hostname().required(), // string.uri ?
+  html: Joi.string(),
+  password: Joi.string().required(),
+  subject: Joi.string(),
+  text: Joi.string(),
+  to: Joi.string().required(),
+  user: Joi.string().email().required(),
+  waitResponse: Joi.boolean(),
+});
 
 var server = new Hapi.Server();
 server.connection({
@@ -35,11 +35,11 @@ server.route({
   handler: function (req, rep) {
     rep('OK');
   },
-  // config: {
-  //   validate: {
-  //     payload: sendValidationSchema
-  //   }
-  // }
+  config: {
+    validate: {
+      payload: sendValidationSchema
+    }
+  }
 });
 
 server.register({register: Blipp, options: {}}, function (err) {
