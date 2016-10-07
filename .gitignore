@@ -6,4 +6,4 @@ node_modules
 *.log
 *.mlog*
 tests.procInfo
-
+tmp/

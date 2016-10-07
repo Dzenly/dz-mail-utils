@@ -9,8 +9,8 @@ var logger = require('../utils/logger');
 var getMessages = require('./get-mail-utility.js').getMessages;
 
 // TODO: pass filters in request?
-// var filters = ['UNSEEN'];
-var filters = [['SINCE', 'September 19, 2016']];
+var filters = ['UNSEEN'];
+// var filters = [['SINCE', 'September 19, 2016']];
 
 // TODO: pass boxName in request (for now INBOX is used) ?
 
