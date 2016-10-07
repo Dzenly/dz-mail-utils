@@ -171,6 +171,8 @@ exports.decryptAndDecompressWithPrivKey = function (buf, key) {
 
 /********** Async part *************/
 
+var tmpDirExists = false;
+
 function forkHelper(funcName, data, password, key) {
   return new Bluebird(function (resolve, reject) {
     var child = fork(__filename);
@@ -193,6 +195,15 @@ function forkHelper(funcName, data, password, key) {
       key: key
     };
     if (ipcByFiles) {
+
+      if (!tmpDirExists) {
+        try {
+          fs.mkdirSync(tmpDirName);
+        } catch (e) {
+        }
+        tmpDirExists = true;
+      }
+
       var filePath = getTmpFilePath(tmpDirName);
       fs.writeFileSync(filePath, data);
       msgToChild.filePath = filePath;

@@ -1,9 +1,11 @@
 'use strict';
 
 var send = require('./send-mail-utility.js');
-var mailOpts = require('./sett-no-git.js');
+
 var request = require('request');
 var crypto = require('crypto');
+
+var mailOpts = require('./sett-no-git.js');
 
 mailOpts.from = '"Incident tests" <build@rvision.pro>';
 mailOpts.to = 'dzen-test@yandex.ru';
