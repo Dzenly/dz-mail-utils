@@ -3,6 +3,7 @@
 var crypto = require('crypto');
 var Bluebird = require('bluebird');
 var request = require('request');
+var util = require('util');
 
 var cryptoLib = require('../../crypto-lib/arc-and-crypt-lib.js');
 
@@ -86,7 +87,7 @@ function getRequest() {
 function getFirstAttachments(response) {
   var parsedGetJson = JSON.parse(response.body);
   var attachments = parsedGetJson.map(function (item) {
-    return item.attachments[0].content.data;
+    return new Buffer(item.attachments[0].content.data);
   });
   return attachments;
 }
@@ -110,7 +111,7 @@ function *main() {
   // console.log(typeof decryptedInputData2);
 
   a.true(decryptedInputData1.equals(inputData1), 'Decrypt immediately after encrypt 1');
-  a.true(decryptedInputData2.equals(inputData2), 'Decrypt immediately after encrypt 1');
+  a.true(decryptedInputData2.equals(inputData2), 'Decrypt immediately after encrypt 2');
 
   var base64EncData1 = encryptedData1.toString('base64');
   l.println('encrypted base64 length1: ' + base64EncData1.length);
@@ -125,7 +126,7 @@ function *main() {
   var checkConvDecryptedData2 = yield cryptoLib.decryptAndDecompressWithPasswordAsync(deconvInputData2, password);
 
   a.true(checkConvDecryptedData1.equals(inputData1), 'Decrypt after conv/deconv 1');
-  a.true(checkConvDecryptedData2.equals(inputData2), 'Decrypt after conv/deconv 1');
+  a.true(checkConvDecryptedData2.equals(inputData2), 'Decrypt after conv/deconv 2');
 
   var response = yield sendRequest(base64EncData1);
   l.println('Response: ' + inspect(response));
@@ -134,23 +135,26 @@ function *main() {
   response = yield sendRequest(base64EncData2);
   l.println('Response: ' + inspect(response));
 
-  // yield Bluebird.delay(15000);
-  //
-  // var getResponse = yield getRequest();
-  //
-  // var attachments = getFirstAttachments(getResponse);
-  //
-  // l.println('Data1 encrypted length: ' + attachments[1].length);
-  // l.println('Data2 encrypted length: ' + attachments[0].length);
+  yield Bluebird.delay(15000);
 
+  var getResponse = yield getRequest();
 
+  var attachments = getFirstAttachments(getResponse);
 
-  // var data2 = yield cryptoLib.decryptAndDecompressWithPasswordAsync(attachments[0], password);
-  // var data1 = yield cryptoLib.decryptAndDecompressWithPasswordAsync(attachments[1], password);
-  //
-  // a.true(data1.equals(inputData1), 'Encoded and Decoded data 1 are equal');
-  //
-  // a.true(data2.equals(inputData2), 'Encoded and Decoded data 2 are equal');
+  l.println('Data1 encrypted length: ' + attachments[1].length);
+  l.println('Data2 encrypted length: ' + attachments[0].length);
+
+  // console.log(encryptedData1.toString('hex'));
+  // console.log(attachments[1].toString('hex'));
+  // console.log(encryptedData2.toString('hex'));
+  // console.log(attachments[0].toString('hex'));
+
+  var data1 = yield cryptoLib.decryptAndDecompressWithPasswordAsync(attachments[0], password);
+  var data2 = yield cryptoLib.decryptAndDecompressWithPasswordAsync(attachments[1], password);
+
+  a.true(data1.equals(inputData1), 'Encoded and Decoded data 1 are equal');
+  a.true(data2.equals(inputData2), 'Encoded and Decoded data 2 are equal');
+
 
   // l.println('Response: ' + inspect(getResponse));
 

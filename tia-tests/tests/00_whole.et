@@ -1,0 +1,19 @@
+encrypted length1: 1000336
+encrypted length2: 500176
+OK: Decrypt immediately after encrypt 1
+OK: Decrypt immediately after encrypt 2
+encrypted base64 length1: 1333784
+encrypted base64 length2: 666904
+OK: Decrypt after conv/deconv 1
+OK: Decrypt after conv/deconv 2
+Request to send mail.
+Response: { resp: { statusCode: 200, statusMessage: 'OK' }, body: 'OK' }
+Request to send mail.
+Response: { resp: { statusCode: 200, statusMessage: 'OK' }, body: 'OK' }
+Request to get mail.
+Data1 encrypted length: 500176
+Data2 encrypted length: 1000336
+OK: Encoded and Decoded data 1 are equal
+OK: Encoded and Decoded data 2 are equal
+=================
+Pass: 6, Fail: 0
