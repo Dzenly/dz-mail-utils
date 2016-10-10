@@ -29,40 +29,40 @@ RSA Testing
 Key as buffer
 initial data type: object
 initial data length: 1249
-encrypted length: 768
+encrypted length: 864
 decrypted length as buffer: 1249
 decrypted length as string: 989
 OK: Input data is equal to decrypted one
 initial data type: string
 initial data length: 989
-encrypted length: 768
+encrypted length: 864
 decrypted length as buffer: 1249
 decrypted length as string: 989
 OK: Input data is equal to decrypted one
 Key as string
 initial data type: object
 initial data length: 1249
-encrypted length: 768
+encrypted length: 864
 decrypted length as buffer: 1249
 decrypted length as string: 989
 OK: Input data is equal to decrypted one
 initial data type: string
 initial data length: 989
-encrypted length: 768
+encrypted length: 864
 decrypted length as buffer: 1249
 decrypted length as string: 989
 OK: Input data is equal to decrypted one
 initial data type: object
 initial data length: 1249
-encrypted length: 768
+encrypted length: 864
 OK: Expected exception: 'Error: error:0407109F:rsa routines:RSA_padding_check_PKCS1_type_2:pkcs decoding error'
 initial data type: object
 initial data length: 1249
-encrypted length: 768
+encrypted length: 864
 OK: Expected exception: 'TypeError: Key must be a buffer'
 initial data type: object
 initial data length: 1249
-encrypted length: 768
+encrypted length: 864
 OK: Expected exception: 'TypeError: Key must be a buffer'
 =================
 Pass: 12, Fail: 0
