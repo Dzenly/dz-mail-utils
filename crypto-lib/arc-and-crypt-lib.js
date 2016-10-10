@@ -11,6 +11,12 @@ var getTmpFilePath = require('./utils/get-tmp-file-path.js');
 var path = require('path');
 var fs = require('fs');
 
+var constants;
+try {
+  constants = require('constants');
+} catch (e) {
+}
+
 // Fix for debugging child processes in WebStorm, but seems like does not work sometimes.
 // http://stackoverflow.com/questions/16840623/how-to-debug-node-js-child-forked-process
 var isDebug = typeof v8debug === 'object';
@@ -20,13 +26,17 @@ if (isDebug) {
   // process.execArgv.push('--debug-brk=' + (40897));
 }
 
+var aesKeyLength = 256 / 8; // bytes.
+var aesWithKeyAlgName = 'aes256';
+var ivLength = 128 / 8; // bytes.
+
 // ? 'aes-256-cbc'
-var alg = 'aes256';
+var aesWithPasswordAlgName = 'aes256';
 // 'utf8', 'ascii', or 'binary'
 var encoding = 'utf8';
 var constPadding = crypto.constants ? crypto.constants.RSA_PKCS1_PADDING : constants.RSA_PKCS1_PADDING;
 var chunkSize = 240;
-var keySize = 256;
+var rsaKeyLength = 256;
 var ipcByFiles = true;
 var tmpDirName = 'tmp';
 
@@ -55,7 +65,7 @@ exports.decompress = function (buf) {
  * @returns {Buffer}
  */
 exports.encryptWithPassword = function (data, password) {
-  var cipher = crypto.createCipher(alg, password);
+  var cipher = crypto.createCipher(aesWithPasswordAlgName, password);
   var tmpBuf1 = cipher.update(data, encoding); // Encoding is ignored if utf8Str is Buffer.
   var tmpBuf2 = cipher.final();
   return Buffer.concat([tmpBuf1, tmpBuf2]);
@@ -67,7 +77,7 @@ exports.encryptWithPassword = function (data, password) {
  * @param password
  * @returns {Buffer}
  */
-exports.encryptWithPubKey = function (data, key) {
+exports.encryptWithPubKeyNoAes = function (data, key) {
   var len = data.length;
   var begin = 0;
   var end = chunkSize;
@@ -84,7 +94,23 @@ exports.encryptWithPubKey = function (data, key) {
     end += chunkSize;
   } while (begin < len);
 
-  return Buffer.concat(chunksArray, Math.ceil(len / chunkSize) * keySize);
+  return Buffer.concat(chunksArray, Math.ceil(len / chunkSize) * rsaKeyLength);
+};
+
+/**
+ * Returns a buffer.
+ * @param data
+ * @param password
+ * @returns {Buffer}
+ */
+exports.encryptWithPubKey = function (data, key) {
+  var aesKey = crypto.randomBytes(aesKeyLength);
+  var iv = crypto.randomBytes(ivLength);
+  var cipheredAesKeyAndIv = exports.encryptWithPubKeyNoAes(Buffer.concat([aesKey, iv]), key);
+  var cipher = crypto.createCipheriv(aesWithKeyAlgName, aesKey, iv);
+  var tmpBuf1 = cipher.update(data, encoding); // Encoding is ignored if utf8Str is Buffer.
+  var tmpBuf2 = cipher.final();
+  return Buffer.concat([cipheredAesKeyAndIv, tmpBuf1, tmpBuf2]);
 };
 
 /**
@@ -94,7 +120,7 @@ exports.encryptWithPubKey = function (data, key) {
  * @returns {*}
  */
 exports.decryptWithPasswordToStr = function (buf, password) {
-  var decipher = crypto.createDecipher(alg, password);
+  var decipher = crypto.createDecipher(aesWithPasswordAlgName, password);
   var decryptedStr = decipher.update(buf, undefined, encoding);
   decryptedStr += decipher.final(encoding);
   return decryptedStr;
@@ -107,7 +133,7 @@ exports.decryptWithPasswordToStr = function (buf, password) {
  * @returns {Buffer}
  */
 exports.decryptWithPasswordToBuf = function (buf, password) {
-  var decipher = crypto.createDecipher(alg, password);
+  var decipher = crypto.createDecipher(aesWithPasswordAlgName, password);
   var tmpBuf1 = decipher.update(buf);
   var tmpBuf2 = decipher.final();
   return Buffer.concat([tmpBuf1, tmpBuf2]);
@@ -117,10 +143,10 @@ exports.decryptWithPrivKeyToStr = function (buf, key) {
   return exports.decryptWithPrivKeyToBuf(buf, key).toString();
 };
 
-exports.decryptWithPrivKeyToBuf = function (buf, key) {
+exports.decryptWithPrivKeyNoAesToBuf = function (buf, key) {
   var len = buf.length;
   var begin = 0;
-  var end = keySize;
+  var end = rsaKeyLength;
   var chunksArray = [];
   var summLen = 0;
 
@@ -133,11 +159,22 @@ exports.decryptWithPrivKeyToBuf = function (buf, key) {
       }, chunk);
     summLen += chunkDecoded.length;
     chunksArray.push(chunkDecoded);
-    begin += keySize;
-    end += keySize;
+    begin += rsaKeyLength;
+    end += rsaKeyLength;
   } while (begin < len);
 
   return Buffer.concat(chunksArray, summLen);
+};
+
+exports.decryptWithPrivKeyToBuf = function (buf, key) {
+  var cipheredAesKeyAndIv = exports.decryptWithPrivKeyNoAesToBuf(buf.slice(0, rsaKeyLength), key);
+  var decipher = crypto.createDecipheriv(
+    aesWithKeyAlgName,
+    cipheredAesKeyAndIv.slice(0, aesKeyLength),
+    cipheredAesKeyAndIv.slice(aesKeyLength, aesKeyLength + ivLength));
+  var tmpBuf1 = decipher.update(buf.slice(rsaKeyLength));
+  var tmpBuf2 = decipher.final();
+  return Buffer.concat([tmpBuf1, tmpBuf2]);
 };
 
 /**
@@ -166,6 +203,16 @@ exports.compressAndEncryptWithPubKey = function (utf8StrOrBuf, key) {
 
 exports.decryptAndDecompressWithPrivKey = function (buf, key) {
   var decrypted = exports.decryptWithPrivKeyToBuf(buf, key);
+  return exports.decompress(decrypted);
+};
+
+exports.compressAndEncryptWithPubKeyNoAes = function (utf8StrOrBuf, key) {
+  var compressed = exports.compress(utf8StrOrBuf);
+  return exports.encryptWithPubKeyNoAes(compressed, key);
+};
+
+exports.decryptAndDecompressWithPrivKeyNoAes = function (buf, key) {
+  var decrypted = exports.decryptWithPrivKeyNoAesToBuf(buf, key);
   return exports.decompress(decrypted);
 };
 

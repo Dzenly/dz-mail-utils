@@ -1,0 +1,14 @@
+=================
+Title: Gzip encrypt / decrypt unzip with RSA, time measurements
+inputFilePath: data/3M
+Pure RSA encryption
+Encryption took 138.298008 ms
+Decription took 25.584402 ms
+OK: Encrypt/Decrypt check
+==========
+RSA + AES encryption
+Encryption took 907.543702 ms
+Decription took 21500.922961 ms
+OK: Encrypt/Decrypt check
+=================
+Pass: 2, Fail: 0

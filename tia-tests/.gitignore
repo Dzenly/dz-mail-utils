@@ -1,0 +1,5 @@
+tmp/
+*.dif
+*.log
+*.mlog*
+*.procInfo
